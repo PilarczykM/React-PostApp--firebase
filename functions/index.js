@@ -2,7 +2,12 @@ const app = require("express")();
 const functions = require("firebase-functions");
 
 const { getAllScreams, postOneScream } = require("./handlers/screams");
-const { login, signUp } = require("./handlers/users");
+const {
+  login,
+  signUp,
+  uploadImage,
+  addUserDetails
+} = require("./handlers/users");
 
 const FBAuth = require("./util/FBAuth");
 
@@ -14,7 +19,8 @@ app.post("/scream", FBAuth, postOneScream);
 // * === User routes === *
 // =========================
 app.post("/signup", signUp);
-
 app.post("/login", login);
+app.post("/user/image", FBAuth, uploadImage);
+app.post("/user", FBAuth, addUserDetails);
 
 exports.api = functions.region("europe-west2").https.onRequest(app);
