@@ -11,6 +11,12 @@ const firebase = require("firebase");
 
 firebase.initializeApp(config);
 
+/**
+ * @desc Post method to add user details.
+ * @param any $req - The request.
+ * @param any $res - The response.
+ * @return void - Response of the server.
+ */
 exports.addUserDetails = (req, res) => {
   let userDetails = reduceUserDetails(req.body);
 
@@ -25,6 +31,43 @@ exports.addUserDetails = (req, res) => {
     });
 };
 
+/**
+ * @desc Get method to get data of authenticated uder for client.
+ * @param any $req - The request.
+ * @param any $res - The response.
+ * @return void - Response of the server.
+ */
+exports.getAuthenticatedUser = (req, res) => {
+  let userData = {};
+  db.doc(`/users/${req.user.handle}`)
+    .get()
+    .then(doc => {
+      if (doc.exists) {
+        userData.credentials = doc.data();
+        return db
+          .collection("likes")
+          .where("userHandle", "==", req.user.handle)
+          .get();
+      }
+    })
+    .then(data => {
+      userData.likes = [];
+      data.forEach(doc => {
+        userData.likes.push(doc.data());
+      });
+      return res.json(userData);
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.code });
+    });
+};
+
+/**
+ * @desc Post method to login user.
+ * @param any $req - The request.
+ * @param any $res - The response.
+ * @return void - Response of the server.
+ */
 exports.login = (req, res) => {
   const user = {
     email: req.body.email,
@@ -54,6 +97,12 @@ exports.login = (req, res) => {
     });
 };
 
+/**
+ * @desc Post method to sign up new user.
+ * @param any $req - The request.
+ * @param any $res - The response.
+ * @return void - Response of the server.
+ */
 exports.signUp = (req, res) => {
   const newUser = {
     email: req.body.email,
@@ -108,6 +157,12 @@ exports.signUp = (req, res) => {
     });
 };
 
+/**
+ * @desc Post method to upload image for user.
+ * @param any $req - The request.
+ * @param any $res - The response.
+ * @return void - Response of the server.
+ */
 exports.uploadImage = (req, res) => {
   const BusBoy = require("busboy");
   const path = require("path");
