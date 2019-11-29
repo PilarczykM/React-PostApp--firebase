@@ -237,9 +237,11 @@ exports.signUp = (req, res) => {
     })
     .catch(err => {
       if (err.code == "auth/email-already-in-use") {
-        res.status(400).json({ email: "Email is alreadry used!" });
+        res.status(400).json({ email: "Email is alreadry in use!" });
       }
-      res.status(500).json({ error: err.code });
+      res
+        .status(500)
+        .json({ general: "Something went wrong, please try again" });
     });
 };
 
