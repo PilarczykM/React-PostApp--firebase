@@ -5,7 +5,7 @@ const {
   reduceUserDetails
 } = require("../util/validators");
 
-const config = require("../util/config");
+const config = require("../util/keys/config");
 
 const firebase = require("firebase");
 
