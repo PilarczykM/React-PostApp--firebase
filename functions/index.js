@@ -120,7 +120,7 @@ exports.onUserImageChange = functions
   .firestore.document("/users/{userId}")
   .onUpdate(change => {
     if (change.before.data().imageUrl !== change.after.data().imageUrl) {
-      let batch = db.batch();
+      const batch = db.batch();
       return db
         .collection("screams")
         .where("userHandle", "==", change.before.data().handle)
@@ -129,9 +129,8 @@ exports.onUserImageChange = functions
           data.forEach(doc => {
             const scream = db.doc(`/screams/${doc.id}`);
             batch.update(scream, { userImage: change.after.data().imageUrl });
-
-            return batch.commit();
           });
+          return batch.commit();
         });
     } else return true;
   });
