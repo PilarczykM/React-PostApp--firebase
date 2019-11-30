@@ -53,7 +53,7 @@ exports.api = functions.region("europe-west2").https.onRequest(app);
 // ================================
 exports.createNotificationOnLike = functions
   .region("europe-west2")
-  .firestore.document("/likes/{id}")
+  .firestore.document("likes/{id}")
   .onCreate(snapshot => {
     return db
       .doc(`/screams/${snapshot.data().screamId}`)
@@ -73,14 +73,14 @@ exports.createNotificationOnLike = functions
           });
         }
       })
-      .catch(err => console.err(err));
+      .catch(err => console.error(err));
   });
 
 // * === On comment notification === *
 // ===================================
 exports.createNotificationOnComment = functions
   .region("europe-west2")
-  .firestore.document("/comments/{id}")
+  .firestore.document("comments/{id}")
   .onCreate(snapshot => {
     return db
       .doc(`/screams/${snapshot.data().screamId}`)
@@ -100,7 +100,9 @@ exports.createNotificationOnComment = functions
           });
         }
       })
-      .catch(err => console.err(err));
+      .catch(err => {
+        return;
+      });
   });
 
 // * === Delete notification on unlike === *
@@ -112,14 +114,21 @@ exports.deleteNotificationOnUnLike = functions
     return db
       .doc(`/notifications/${snapshot.id}`)
       .delete()
-      .catch(err => console.error(err));
+      .catch(err => {
+        return;
+      });
   });
 
+// * === On user image change notification === *
+// =============================================
 exports.onUserImageChange = functions
   .region("europe-west2")
   .firestore.document("/users/{userId}")
   .onUpdate(change => {
+    console.log(change.before.data());
+    console.log(change.after.data());
     if (change.before.data().imageUrl !== change.after.data().imageUrl) {
+      console.log("image has changed");
       const batch = db.batch();
       return db
         .collection("screams")
@@ -135,6 +144,8 @@ exports.onUserImageChange = functions
     } else return true;
   });
 
+// * === On scream delete notification === *
+// =========================================
 exports.onScreamDelete = functions
   .region("europe-west2")
   .firestore.document("/screams/{screamId}")

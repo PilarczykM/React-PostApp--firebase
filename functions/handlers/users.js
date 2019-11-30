@@ -257,40 +257,31 @@ exports.uploadImage = (req, res) => {
   const os = require("os");
   const fs = require("fs");
 
-  const busboy = new BusBoy({
-    headers: req.headers
-  });
+  const busboy = new BusBoy({ headers: req.headers });
 
-  let imageFileName;
   let imageToBeUploaded = {};
+  let imageFileName;
 
-  busboy.on("file", (fieldName, file, fileName, encoding, mimetype) => {
+  busboy.on("file", (fieldname, file, filename, encoding, mimetype) => {
+    console.log(fieldname, file, filename, encoding, mimetype);
     if (mimetype !== "image/jpeg" && mimetype !== "image/png") {
-      return res.status(400).json({
-        error: "Wrong file type submitted. Try .jpeg || .jpg || .png"
-      });
+      return res.status(400).json({ error: "Wrong file type submitted" });
     }
-
-    // Getting filetype (eg. .png, /jpg ...)
-    const imageExtension = fileName.split(".")[fileName.split(".").length - 1];
-
-    // 1345657562252573457347.png
+    // my.image.png => ['my', 'image', 'png']
+    const imageExtension = filename.split(".")[filename.split(".").length - 1];
+    // 32756238461724837.png
     imageFileName = `${Math.round(
-      Math.random() * 100000000
-    )}.${imageExtension}`;
-
-    const filePath = path.join(os.tmpdir(), imageFileName);
-
-    imageToBeUploaded = { filePath, mimetype };
-
-    file.pipe(fs.createWriteStream(filePath));
+      Math.random() * 1000000000000
+    ).toString()}.${imageExtension}`;
+    const filepath = path.join(os.tmpdir(), imageFileName);
+    imageToBeUploaded = { filepath, mimetype };
+    file.pipe(fs.createWriteStream(filepath));
   });
-
   busboy.on("finish", () => {
     admin
       .storage()
       .bucket()
-      .upload(imageToBeUploaded.filePath, {
+      .upload(imageToBeUploaded.filepath, {
         resumable: false,
         metadata: {
           metadata: {
@@ -303,12 +294,12 @@ exports.uploadImage = (req, res) => {
         return db.doc(`/users/${req.user.handle}`).update({ imageUrl });
       })
       .then(() => {
-        return res.json({ message: "Image uploaded successfully!" });
+        return res.json({ message: "image uploaded successfully" });
       })
       .catch(err => {
-        res.status(500).json({ error: err });
+        console.error(err);
+        return res.status(500).json({ error: "something went wrong" });
       });
   });
-
   busboy.end(req.rawBody);
 };
